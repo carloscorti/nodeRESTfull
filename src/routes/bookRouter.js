@@ -1,6 +1,6 @@
 const express = require('express');
 // const debug = require('debug')('app:bookRouter');
-const { getAllBooks, getBookById, postBook } = require('../controllers/bookRouter.controller')();
+const { getAllBooks, getBookById, postBook, putBook } = require('../controllers/bookRouter.controller')();
 
 
 function bookApi() {
@@ -10,7 +10,8 @@ function bookApi() {
     .post(postBook);
 
   bookRouter.route('/book/:id')
-    .get(getBookById);
+    .get(getBookById)
+    .put(putBook);
 
   return bookRouter;
 }

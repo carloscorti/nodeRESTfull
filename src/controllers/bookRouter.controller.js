@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 const mongoose = require('mongoose');
 const debug = require('debug')('app:bookRouter.controller');
 const { url, dbName } = require('../services/conection.service');
@@ -19,12 +20,12 @@ function bookRouterController() {
 
   function getBookById(req, res) {
     const { id } = req.params;
-    Book.findById(id, (err, result) => {
+    Book.findById(id, (err, book) => {
       if (err) {
         debug(err);
         return res.send(err);
       }
-      return res.json(result);
+      return res.json(book);
     });
   }
 
@@ -37,10 +38,29 @@ function bookRouterController() {
     return res.status(201).json(book);
   }
 
+  function putBook(req, res) {
+    const { id } = req.params;
+    Book.findById(id, (err, book) => {
+      if (err) {
+        debug(err);
+        return res.send(err);
+      }
+      book.title = req.body.title;
+      book.author = req.body.author;
+      book.genre = req.body.genre;
+      book.read = req.body.read;
+
+      book.save();
+
+      return res.json(book);
+    });
+  }
+
   return {
     getAllBooks,
     getBookById,
     postBook,
+    putBook,
   };
 }
 
