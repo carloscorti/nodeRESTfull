@@ -28,9 +28,19 @@ function bookRouterController() {
     });
   }
 
+  function postBook(req, res) {
+    // le doy le Schema mongoose
+    const book = new Book(req.body);
+
+    // asi hace db.callection.insertOne mongoose
+    book.save();
+    return res.status(201).json(book);
+  }
+
   return {
     getAllBooks,
     getBookById,
+    postBook,
   };
 }
 
