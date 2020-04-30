@@ -1,10 +1,8 @@
 /* eslint-disable no-param-reassign */
 const mongoose = require('mongoose');
 const debug = require('debug')('app:bookRouter.controller');
-const { url, dbName } = require('../services/conection.service');
-const Book = require('../models/bookModel');
 
-function bookRouterController() {
+function bookRouterController(Book, url, dbName) {
   mongoose.connect(`${url}/${dbName}`, { useNewUrlParser: true, useUnifiedTopology: true });
 
   function getAllBooks(req, res) {
@@ -18,46 +16,64 @@ function bookRouterController() {
     });
   }
 
-  function getBookById(req, res) {
+  function searchBookById(req, res, next) {
     const { id } = req.params;
     Book.findById(id, (err, book) => {
       if (err) {
-        debug(err);
+        debug(`Middleware error: ${err}`);
         return res.send(err);
       }
-      return res.json(book);
+      req.book = book;
+      next();
+      return req;
     });
   }
 
-  function postBook(req, res) {
-    // le doy le Schema mongoose
-    const book = new Book(req.body);
+  function getBookById(req, res) {
+    return res.json(req.book);
+  }
 
-    // asi hace db.callection.insertOne mongoose
+  function postBook(req, res) {
+    if (req.body._id || !req.body.title) {
+      return res.status(400).send('Bad post request schema');
+    }
+    const book = new Book(req.body);
     book.save();
     return res.status(201).json(book);
   }
 
   function putBook(req, res) {
-    const { id } = req.params;
-    Book.findById(id, (err, book) => {
-      if (err) {
-        debug(err);
-        return res.send(err);
+    let badRequest = false;
+    const dbFields = Object.keys(req.book._doc);
+    const putFields = Object.keys(req.body);
+    dbFields.forEach((key) => {
+      if (key[0] === '_') {
+        dbFields.splice(dbFields.indexOf(key), 1);
       }
-      book.title = req.body.title;
-      book.author = req.body.author;
-      book.genre = req.body.genre;
-      book.read = req.body.read;
-
-      book.save();
-
-      return res.json(book);
     });
+
+    if (dbFields.length === putFields.length) {
+      putFields.forEach((key) => {
+        if (dbFields.includes(key)) {
+          req.book[key] = req.body[key];
+        } else {
+          badRequest = true;
+        }
+      });
+    } else {
+      badRequest = true;
+    }
+
+    if (badRequest) {
+      return res.status(400).send('Bad put request schema');
+    }
+    req.book.save();
+    return res.json(req.book);
   }
 
   return {
     getAllBooks,
+    searchBookById,
     getBookById,
     postBook,
     putBook,
