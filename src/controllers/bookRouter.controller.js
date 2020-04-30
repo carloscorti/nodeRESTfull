@@ -71,12 +71,36 @@ function bookRouterController(Book, url, dbName) {
     return res.json(req.book);
   }
 
+  function patchBook(req, res) {
+    if (req.body._id) {
+      return res.status(400).send('Bad post request schema');
+    }
+    const dbFields = Object.keys(req.book._doc);
+    const putFields = Object.keys(req.body);
+    let badRequest = false;
+
+    putFields.forEach((key) => {
+      if (dbFields.includes(key)) {
+        req.book[key] = req.body[key];
+      } else {
+        badRequest = true;
+      }
+    });
+
+    if (badRequest) {
+      return res.status(400).send('Bad put request schema');
+    }
+    req.book.save();
+    return res.json(req.book);
+  }
+
   return {
     getAllBooks,
     searchBookById,
     getBookById,
     postBook,
     putBook,
+    patchBook,
   };
 }
 
