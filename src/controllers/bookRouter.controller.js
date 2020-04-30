@@ -1,4 +1,4 @@
-/* eslint-disable no-param-reassign */
+/* eslint-disable no-underscore-dangle */
 const mongoose = require('mongoose');
 const debug = require('debug')('app:bookRouter.controller');
 
@@ -23,9 +23,11 @@ function bookRouterController(Book, url, dbName) {
         debug(`Middleware error: ${err}`);
         return res.send(err);
       }
-      req.book = book;
-      next();
-      return req;
+      if (book) {
+        req.book = book;
+        return next();
+      }
+      return res.sendStatus(404);
     });
   }
 
@@ -95,7 +97,7 @@ function bookRouterController(Book, url, dbName) {
   }
 
   function deleteBook(req, res) {
-    if (Object.keys(req.body).length !== 0 || !req.book) {
+    if (Object.keys(req.body).length !== 0) {
       return res.status(400).send('Bad post request schema');
     }
     req.book.delete();
