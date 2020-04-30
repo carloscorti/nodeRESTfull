@@ -94,6 +94,14 @@ function bookRouterController(Book, url, dbName) {
     return res.json(req.book);
   }
 
+  function deleteBook(req, res) {
+    if (Object.keys(req.body).length !== 0 || !req.book) {
+      return res.status(400).send('Bad post request schema');
+    }
+    req.book.delete();
+    return res.json(req.book);
+  }
+
   return {
     getAllBooks,
     searchBookById,
@@ -101,6 +109,7 @@ function bookRouterController(Book, url, dbName) {
     postBook,
     putBook,
     patchBook,
+    deleteBook,
   };
 }
 

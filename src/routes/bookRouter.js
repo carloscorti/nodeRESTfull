@@ -2,7 +2,7 @@ const express = require('express');
 // const debug = require('debug')('app:bookRouter');
 const Book = require('../models/bookModel');
 const { url, dbName } = require('../services/conection.service');
-const { getAllBooks, searchBookById, getBookById, postBook, putBook, patchBook } = require('../controllers/bookRouter.controller')(Book, url, dbName);
+const { getAllBooks, searchBookById, getBookById, postBook, putBook, patchBook, deleteBook } = require('../controllers/bookRouter.controller')(Book, url, dbName);
 
 
 function bookApi() {
@@ -15,7 +15,8 @@ function bookApi() {
   bookRouter.route('/book/:id')
     .get(getBookById)
     .put(putBook)
-    .patch(patchBook);
+    .patch(patchBook)
+    .delete(deleteBook);
 
   return bookRouter;
 }
