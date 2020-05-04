@@ -21,7 +21,7 @@ function bookRouterController(Book, url, dbName) {
     Book.findById(id, (err, book) => {
       if (err) {
         debug(`Middleware error: ${err}`);
-        return res.send(err);
+        return res.sendStatus(404);
       }
       if (book) {
         req.book = book;
@@ -40,19 +40,19 @@ function bookRouterController(Book, url, dbName) {
       return res.status(400).send('Bad post request schema');
     }
     const book = new Book(req.body);
-    book.save();
-    return res.status(201).json(book);
+    return book.save((err, postedBook) => {
+      if (err) {
+        debug(err);
+        return res.sendStatus(400);
+      }
+      return res.status(201).json(postedBook);
+    });
   }
 
   function putBook(req, res) {
     let badRequest = false;
-    const dbFields = Object.keys(req.book._doc);
+    const dbFields = Object.keys(req.book.toJSON()).filter((key) => key[0] !== '_');
     const putFields = Object.keys(req.body);
-    dbFields.forEach((key) => {
-      if (key[0] === '_') {
-        dbFields.splice(dbFields.indexOf(key), 1);
-      }
-    });
 
     if (dbFields.length === putFields.length) {
       putFields.forEach((key) => {
@@ -69,15 +69,20 @@ function bookRouterController(Book, url, dbName) {
     if (badRequest) {
       return res.status(400).send('Bad put request schema');
     }
-    req.book.save();
-    return res.json(req.book);
+    return req.book.save((err, replaceBook) => {
+      if (err) {
+        debug(err);
+        return res.sendStatus(400);
+      }
+      return res.status(201).json(replaceBook);
+    });
   }
 
   function patchBook(req, res) {
     if (req.body._id) {
       return res.status(400).send('Bad post request schema');
     }
-    const dbFields = Object.keys(req.book._doc);
+    const dbFields = Object.keys(req.book.toJSON());
     const putFields = Object.keys(req.body);
     let badRequest = false;
 
@@ -92,16 +97,26 @@ function bookRouterController(Book, url, dbName) {
     if (badRequest) {
       return res.status(400).send('Bad put request schema');
     }
-    req.book.save();
-    return res.json(req.book);
+    return req.book.save((err, patchedBook) => {
+      if (err) {
+        debug(err);
+        return res.sendStatus(400);
+      }
+      return res.json(patchedBook);
+    });
   }
 
   function deleteBook(req, res) {
     if (Object.keys(req.body).length !== 0) {
       return res.status(400).send('Bad post request schema');
     }
-    req.book.delete();
-    return res.json(req.book);
+    return req.book.remove((err) => {
+      if (err) {
+        debug(err);
+        return res.sendStatus(400);
+      }
+      return res.sendStatus(204);
+    });
   }
 
   return {

@@ -17,4 +17,8 @@ app.get('/', (req, res) => {
   res.send('Welcome to my RESTFull Api');
 });
 
+app.use((req, res, next) => {
+  res.sendStatus(404);
+});
+
 app.listen(port, () => debug(`App listening at port ${port}`));
